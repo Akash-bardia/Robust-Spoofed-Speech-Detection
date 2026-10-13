@@ -41,8 +41,9 @@ desktop.ini
 *.rar
 *.7z
 
-# Word documents and evaluation rubrics
+# Word documents, presentations, and evaluation rubrics
 *.docx
+*.pptx
 
 # LaTeX auxiliary files (keep .tex and .bib)
 reports/*.aux
