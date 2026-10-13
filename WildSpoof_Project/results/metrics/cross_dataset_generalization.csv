@@ -1,0 +1,5 @@
+Trained On,Evaluated On,ROC-AUC,EER (%),Accuracy
+FoR Dataset,FoR (Within),0.74464,40.400000000000006,0.692
+FoR Dataset,ASVspoof LA (Cross),0.67896,38.80000000003467,0.562
+ASVspoof LA,ASVspoof LA (Within),0.8916319999999999,20.39999999999999,0.774
+ASVspoof LA,FoR (Cross),0.366256,60.0,0.5

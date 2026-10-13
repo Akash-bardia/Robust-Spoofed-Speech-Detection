@@ -1,0 +1,11 @@
+Metric,Value
+Baseline Avg AUC (All Conditions),0.6503
+Augmented Avg AUC (All Conditions),0.8184
+Baseline Avg AUC (Corrupted Only),0.6226
+Augmented Avg AUC (Corrupted Only),0.7862
+Baseline Best Condition,Clean (0.7886)
+Augmented Best Condition,Reverberation (0.9874)
+Baseline Worst Condition,Noise + Reverberation (0.5707)
+Augmented Worst Condition,Noise 5 dB (0.6449)
+Condition with Largest Degradation (Baseline),Noise + Reverberation (Degradation = 0.2179)
+Condition with Largest Improvement from Augmentation,Reverberation (+0.3773 AUC / +61.84%)

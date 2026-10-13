@@ -1,0 +1,50 @@
+# Datasets and large audio files
+LA/
+for-2seconds/
+**/data/processed/
+*.flac
+*.wav
+*.mp3
+
+# Python Virtual Environments & Packages
+venv/
+env/
+.venv/
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Archives and temporary files
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# Word documents and evaluation rubrics
+*.docx
+
+# LaTeX auxiliary files (keep .tex and .bib)
+reports/*.aux
+reports/*.log
+reports/*.out
+reports/*.toc
+reports/*.bbl
+reports/*.blg
+reports/*.synctex.gz
+reports/*.fdb_latexmk
+reports/*.fls

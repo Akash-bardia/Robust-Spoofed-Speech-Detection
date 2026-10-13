@@ -1,0 +1,14 @@
+Metric,Value
+Number of training files,13956
+Number of validation files,2826
+Number of testing files,1088
+Real training samples,6978
+Fake training samples,6978
+Real validation samples,1413
+Fake validation samples,1413
+Real testing samples,544
+Fake testing samples,544
+Mean duration (sec),2.0000
+Minimum duration (sec),2.0000
+Maximum duration (sec),2.0000
+Sample-rate distribution,{16000: np.int64(17870)}
