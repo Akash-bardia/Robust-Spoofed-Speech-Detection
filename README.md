@@ -199,44 +199,19 @@ Zero-shot cross-corpus domain transfer evaluation:
 
 ```text
 PROJECT/
-├── reports/                                           # Dedicated Project Reports Directory
-│   ├── IEEE_WildSpoof_LA_Report.docx                  # Deliverable 1: Strict IEEE Conference Paper Format (1.88 MB)
-│   └── WildSpoof_Project_Execution_Results_and_Code_Report.docx # Deliverable 2: Complete Project Execution, Code & Results (2.41 MB)
-│
-├── REPORT_AND_PPT_IMAGES/                             # Canonical Presentation & Report Image Gallery (All Pure White BG)
-│   ├── 01_dataset_architecture_and_splits.png         # ASVspoof 2019 LA partition breakdown & class ratio
-│   ├── 02_methodology_flowchart.png                   # Dual-Stream MFM-LCNN end-to-end architecture flowchart
-│   ├── 03_model_evaluation_metrics_card.png           # Development vs. Official Evaluation performance card
-│   ├── 04_confusion_matrix_evaluation.png             # Confusion matrix on official LA Eval set (96.81% precision)
-│   ├── 05_roc_curves_official_la.png                  # Official ROC curves (Baseline vs. Augmented LCNN)
-│   ├── 06_unseen_attacks_eer_barchart.png             # Granular EER (%) across all 13 unseen attacks (A07–A19)
-│   ├── 07_unseen_attacks_auc_barchart.png             # Granular ROC-AUC across unseen attacks (A12 & A13 gains)
-│   ├── 08_acoustic_robustness_stress_testing.png      # Robustness degradation curves (+0.1953 AUC lift under 5 dB noise)
-│   ├── 09_feature_representations_comparison.png      # LFCC (60 linear bands) vs. Log-Mel (80 mel bands) spectrograms
-│   ├── 10_training_convergence_curves.png             # Training loss and validation EER convergence over epochs
-│   └── 11_sota_model_benchmark_comparison.png         # Comparative benchmark against CQCC-GMM, LFCC-GMM, RawNet2, AASIST
-│
-├── build_scripts/                                     # Automated report and image generator scripts
-│   ├── generate_project_images.py                     # Script to render all 11 presentation images
-│   ├── generate_ieee_wildspoof_report.py              # Script to build IEEE_WildSpoof_LA_Report.docx
-│   └── build_comprehensive_code_and_results_report.py # Script to build WildSpoof_Project_Execution_Results_and_Code_Report.docx
-│
-├── LA/                                                # Canonical ASVspoof 2019 Logical Access Dataset (121,461 files)
-│   ├── ASVspoof2019_LA_cm_protocols/                  # Official countermeasure protocols (train, dev, eval)
-│   ├── ASVspoof2019_LA_train/flac/                    # 25,380 training FLAC audio files (known attacks A01–A06)
-│   ├── ASVspoof2019_LA_dev/flac/                      # 24,844 development FLAC audio files (known attacks A01–A06)
-│   └── ASVspoof2019_LA_eval/flac/                     # 71,237 evaluation FLAC audio files (unseen attacks A07–A19)
-│
-├── WildSpoof_Project/                                 # Core Project Source Code & Trained LA Models
-│   ├── data/manifests/                                # Verified protocol manifests (train_la.csv, dev_la.csv, eval_la.csv)
-│   ├── models/                                        # Final LA checkpoints (la_academic_lcnn_baseline.pt, la_academic_lcnn_augmented.pt)
-│   ├── src/                                           # Modular library (la_models.py, la_dataset.py, augmentation.py)
-│   ├── scripts/                                       # Pipeline scripts (train_la_system.py, evaluate_la_attacks.py)
-│   └── results/figures/                               # Synchronized canonical project figures
-│
-├── IEEE ball bearing.docx                             # Original IEEE layout reference template
-├── Speech_FinalPJT_eval.docx                          # Course evaluation criteria & instructor rubric
-└── README.md                                          # Master documentation
+├── WildSpoof_Project/                                 # Core Project Implementation & Results
+│   ├── src/                                           # Modular architecture library (la_models.py, la_dataset.py, augmentation.py, features.py)
+│   ├── scripts/                                       # Execution pipelines (train_la_system.py, evaluate_la_attacks.py, evaluate_la_robustness.py)
+│   ├── notebooks/                                     # Step-by-step Jupyter notebooks (01 to 05)
+│   ├── models/                                        # Trained LA model checkpoints (la_academic_lcnn_baseline.pt, la_academic_lcnn_augmented.pt)
+│   ├── results/                                       # Empirical metrics, ROC curves, logs, and evaluation figures
+│   │   ├── figures/                                   # High-resolution benchmark figures
+│   │   ├── metrics/                                   # Attack breakdown & robustness evaluation CSVs
+│   │   ├── logs/                                      # Training convergence logs
+│   │   └── robustness/                                # Stress-testing results under acoustic mismatch
+│   ├── requirements.txt                               # Project dependencies
+│   └── README.md                                      # Sub-module documentation
+└── README.md                                          # Master architecture & benchmark documentation
 ```
 
 ---

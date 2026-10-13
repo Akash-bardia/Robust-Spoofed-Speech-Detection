@@ -1,10 +1,16 @@
-# Datasets and large audio files
+# Datasets, manifests and large data files
 LA/
 for-2seconds/
-**/data/processed/
+data/
+**/data/
 *.flac
 *.wav
 *.mp3
+
+# Reports, PPT Images, and Build Scripts (not part of core code & results)
+reports/
+REPORT_AND_PPT_IMAGES/
+build_scripts/
 
 # Python Virtual Environments & Packages
 venv/
