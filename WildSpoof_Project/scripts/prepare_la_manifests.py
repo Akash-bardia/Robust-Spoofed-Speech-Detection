@@ -7,9 +7,11 @@ import pandas as pd
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-LA_DIR = Path(r"d:\Speech\PROJECT\LA")
+from src import config
+
+LA_DIR = config.LA_DIR
 PROTO_DIR = LA_DIR / "ASVspoof2019_LA_cm_protocols"
-OUT_MANIFEST_DIR = PROJECT_ROOT / "data" / "manifests"
+OUT_MANIFEST_DIR = config.MANIFESTS_DIR
 OUT_MANIFEST_DIR.mkdir(parents=True, exist_ok=True)
 
 # ASVspoof 2019 System ID descriptions

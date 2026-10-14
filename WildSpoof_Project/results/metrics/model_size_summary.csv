@@ -1,0 +1,3 @@
+Model Name,Checkpoint File,Embedding Dim,Fused Dim,Output Classes,Trainable Parameters,Total Parameters,FP32 Memory (KB),FP16 Memory (KB),Serialized File Size (Bytes),Serialized File Size (KB)
+Baseline CNN,la_academic_lcnn_baseline.pt,32,64,1,84705,84834,331.38,165.69,349190,341.01
+Augmented CNN,la_academic_lcnn_augmented.pt,32,64,1,84705,84834,331.38,165.69,349221,341.04

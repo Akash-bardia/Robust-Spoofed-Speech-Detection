@@ -1,121 +1,70 @@
-# WildSpoof: In-the-Wild Generation and Detection of Spoofed Speech (GC-14)
+# WildSpoof: Robust Spoofed Speech Detection (ICASSP GC-14 Inspired)
 
-**Challenge Details**:
-- **Grand Challenge**: ICASSP GC-14: In-the-wild generation and detection of spoofed speech (WildSpoof)
-- **Organizers**: Yihan Wu (Renmin University), Jee-weon Jung (Apple / CMU), Hye-jin Shim (CMU), Xin Wang (NII Japan), Xin Cheng (Renmin University)
-- **Challenge Website**: [https://wildspoof.github.io/](https://wildspoof.github.io/)
-- **Submission Portal**: [ICASSP Workshop Paper Submission](https://cmsworkshops.com/ICASSP2026/Papers/Submission.asp?Type=Challenge&ID=14)
-- **Target Tasks**: Text-to-Speech Generation (TTS) & Spoofing-aware Automatic Speaker Verification (SASV)
+A lightweight deep learning anti-spoofing countermeasure architecture designed for the canonical **ASVspoof 2019 Logical Access (`LA`)** challenge and hardened for controlled acoustic mismatch.
 
 ---
 
-## 1. Executive Summary & Main Objectives
+## 1. Executive Summary & Core Objectives
 
-The WildSpoof Challenge aims to advance the use of in-the-wild data in two speech processing tasks that generate and detect spoofed speech:
-1. **Text-to-Speech Generation (TTS)**
-2. **Spoofing-aware Automatic Speaker Verification (SASV)**
+Synthetic speech generators (TTS) and voice conversion (VC) models pose a grave threat to voice biometrics. While clean laboratory detectors achieve low Equal Error Rates (EER), acoustic degradation (additive noise, reverberation, and channel bandwidth limitations) degrades baseline countermeasure reliability.
 
-This project addresses the detection side of the WildSpoof Challenge, moving beyond conventional clean and controlled laboratory datasets toward realistic, in-the-wild robustness. Evaluated primarily on the canonical **ASVspoof 2019 Logical Access (`LA`)** benchmark dataset (121,461 utterances across 19 speech synthesis & voice conversion attack algorithms `A01`–`A19`), our architecture incorporates acoustic noise and reverberation hardening to detect spoofed speech under both pristine and degraded real-world conditions.
-
-```text
-BONA FIDE (HUMAN SPEECH)   vs   SPOOF (SYNTHETIC / CONVERTED SPEECH)
-```
-
-The system is evaluated across:
-1. **Canonical ASVspoof 2019 Logical Access (`LA`)**: 121,461 audio utterances covering 19 distinct attack systems (`A01`–`A19`).
-2. **Dual-Stream Light CNN (MFM-LCNN)**: Dual encoders processing high-resolution 2D LFCC (60 linear filterbanks) and 2D Log-Mel (80 perceptual filterbanks) with Max-Feature-Map non-linearities.
-3. **Acoustic Hardening**: Dual-domain robustness combining time-domain noise, reverberation, and lowpass filtering with 2D SpecAugment (frequency and time masking) to emulate in-the-wild acoustic variability.
-4. **Stress-Testing & Generalization**: Six acoustic degradation conditions (SNR 0 dB to 20 dB, room impulse response reverberation, clipping distortion).
+This repository provides:
+- **Canonical ASVspoof 2019 Logical Access (`LA`)**: 121,461 audio files across 19 attack systems (`A01`–`A19`), with strictly disjoint speaker and attack splits.
+- **Dual-Stream MFM-LCNN**: Parallel convolutional encoders processing 60-band Linear Frequency Cepstral Coefficients (LFCC) and 80-band Log-Mel Spectrograms with Max-Feature-Map (MFM) competitive non-linearities.
+- **Mathematically Verified Acoustic Features**: Genuine linear filterbanks (0–8,000 Hz) + DCT-II for LFCC, avoiding any FFT-bin truncation.
+- **Acoustic Hardening**: Dual-domain data augmentation combining time-domain additive Gaussian noise, synthetic room impulse response (RIR) reverberation, 4th-order Butterworth low-pass filtering, and 2D SpecAugment.
+- **Controlled Acoustic Stress Testing**: Systematic comparison of Clean-trained Baseline vs. Acoustically Augmented models under 7 controlled acoustic conditions.
 
 ---
 
-## 2. Project Directory Tree
+## 2. Model Size & Complexity Clarification
 
-```text
-WildSpoof_Project/
-├── data/
-│   ├── manifests/             # Manifests: train_la.csv, dev_la.csv, eval_la.csv, train.csv, test.csv
-│   └── processed/             # Cached feature matrices
-│
-├── notebooks/                 # Sequential academic Jupyter Notebooks (01 to 05)
-│
-├── src/                       # Core modular package
-│   ├── la_models.py           # DualStreamLCNN, LCNNEncoder, MFM, DeepSpoofCNN, ResNetSpoofNet
-│   ├── la_dataset.py          # Fast audio loader, torchaudio LFCC & Mel, SpecAugment
-│   ├── augmentation.py        # Additive noise, reverberation, lowpass filtering
-│   ├── evaluate.py            # Accuracy, Precision, Recall, F1, ROC-AUC, EER computation
-│   ├── config.py              # Reproducible path and hyperparameter configurations
-│   └── utils.py               # Seed setting & reproducibility utilities
-│
-├── scripts/                   # Executable workflow pipelines
-│   ├── prepare_la_manifests.py       # ASVspoof 2019 LA protocol parser & manifest generator
-│   ├── train_la_system.py            # DualStreamLCNN baseline & augmented training
-│   ├── evaluate_la_attacks.py        # Granular per-attack evaluation across A07-A19
-│   ├── evaluate_la_robustness.py     # Acoustic degradation stress-testing pipeline
-│   ├── cross_dataset_evaluation.py   # Zero-shot cross-corpus generalization
-│   ├── run_experiments.py            # Baseline experiments on for-2seconds
-│   ├── run_robustness.py             # Robustness experiments on for-2seconds
-│   ├── extract_features.py           # Feature extraction for for-2seconds
-│   ├── create_manifest.py            # Manifest generator for for-2seconds
-│   ├── analyze_dataset.py            # Audio metadata scanning & distributions
-│   └── generate_notebooks.py         # Notebook regenerator
-│
-├── models/                    # Trained model checkpoints
-│   ├── la_academic_lcnn_baseline.pt  # Clean Dual-Stream LCNN (0.30% Val EER, 0.9997 Val AUC)
-│   └── la_academic_lcnn_augmented.pt # In-the-Wild Hardened LCNN (+0.1953 AUC lift under 5 dB noise)
-│
-├── results/
-│   ├── figures/               # Publication-ready plots, ROC curves, bar charts
-│   ├── metrics/               # Evaluation CSV tables (overall, attack breakdown, robustness)
-│   └── logs/                  # Training history logs
-│
-├── requirements.txt           # Python dependencies
-└── README.md                  # Package documentation
-```
+| Configuration | Branch Embedding | Fused Dimension | Output Logits | Trainable Parameters | FP32 Memory | Serialized Disk Checkpoint Size |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **Deployed Checkpoint (Baseline)** | 32 | 64 | 1 | **84,705** | **331.38 KB** | **349,190 bytes (~341 KB)** |
+| **Deployed Checkpoint (Augmented)**| 32 | 64 | 1 | **84,705** | **331.38 KB** | **349,221 bytes (~341 KB)** |
+| **Canonical Config Architecture**  | 64 | 128 | 2 | **125,858**| **492.14 KB** | **~512 KB** |
+
+*Note*: The "349 KB" value documented in project milestones represents the **serialized file size on disk** (`.pt`), whereas the model's actual parameter footprint is **84,705 parameters** (331.38 KB in FP32).
 
 ---
 
-## 3. Key Results Summary
+## 3. Key Empirical Results (ASVspoof 2019 LA Evaluation Set)
 
-### 3.1. ASVspoof 2019 LA Benchmark Performance
+All metrics are generated directly from model inference via `scripts/generate_results.py`:
 
-| Metric | Clean Baseline LCNN | Acoustically Augmented LCNN |
-| :--- | :--- | :--- |
-| **Validation Accuracy** | **99.50%** | **89.63%** |
-| **Validation EER (%)** | **0.30%** | **8.63%** |
-| **Optimal Operating Threshold** | 0.7039 | 0.2378 |
+### 3.1. Overall Evaluation (2,995 Utterances)
+- **Baseline LCNN**: ROC-AUC **0.9129**, EER **16.13%** (operating threshold 0.9836).
+- **Augmented LCNN**: ROC-AUC **0.8962**, EER **17.86%** (operating threshold 0.6685).
 
-### 3.2. Unseen Attack Highlights (A07–A19)
-- **A07 (Vocoder + GAN)**: **0.00% EER, 1.0000 AUC**
-- **A08 (Neural Waveform)**: **0.00% EER, 1.0000 AUC**
-- **A09 (Vocoder)**: **0.40% EER, 0.9999 AUC**
-- **A11 (Griffin-Lim)**: **2.47% EER, 0.9963 AUC**
-- **A16 (Waveform Concatenation)**: **0.87% EER, 0.9998 AUC**
-- **A19 (Spectral Filtering)**: **0.73% EER, 0.9998 AUC**
+### 3.2. Controlled Acoustic Stress Testing (500 Utterances Paired Evaluation)
 
-### 3.3. Acoustic Robustness Lifts (Acoustic Hardening)
-- **Noise 10 dB**: Augmented LCNN delivers **+0.1740 AUC lift** and cuts EER by **+11.60%**.
-- **Noise 5 dB**: Augmented LCNN delivers **+0.1953 AUC lift** and cuts EER by **+15.20%**.
-- **Reverberation**: Augmented LCNN achieves **0.8855 AUC** (**+0.1620 AUC lift**) and cuts EER by **+12.80%**.
-- **Noise + Reverberation**: Augmented LCNN delivers **+0.1406 AUC lift** and cuts EER by **+10.80%**.
+| Acoustic Condition | Baseline AUC | Baseline EER (%) | Augmented AUC | Augmented EER (%) | AUC Lift ($\Delta$) | EER Reduction (%) |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **Pristine Clean** | **0.9140** | **14.80%** | 0.8980 | 17.60% | -0.0160 | -2.80% |
+| **Gaussian Noise 20 dB** | 0.7019 | 36.00% | **0.7768** | **28.80%** | **+0.0749** | **+7.20%** |
+| **Gaussian Noise 10 dB** | 0.4885 | 52.00% | **0.6965** | **35.60%** | **+0.2080** | **+16.40%** |
+| **Gaussian Noise 5 dB** | 0.4684 | 54.00% | **0.6712** | **36.80%** | **+0.2028** | **+17.20%** |
+| **Reverberation (Synthetic RIR)** | 0.7428 | 33.20% | **0.8758** | **20.80%** | **+0.1330** | **+12.40%** |
+| **Noise + Reverberation** | 0.3574 | 60.40% | **0.6312** | **40.80%** | **+0.2738** | **+19.60%** |
+| **Lowpass Filter (3.4 kHz)** | 0.8487 | 23.20% | **0.8492** | **23.20%** | **+0.0005** | 0.00% |
+
+Under severe acoustic corruption (5 dB noise and combined noise + reverb), the baseline collapses ($\text{AUC} \le 0.4684$), while the acoustically hardened model preserves robust discriminability, delivering up to **+0.2738 AUC lift** and reducing EER by **19.60%**.
 
 ---
 
-## 4. How to Run
+## 4. Execution Pipelines
 
 ```powershell
-# 1. Prepare LA manifests
-python scripts/prepare_la_manifests.py
+# 1. Run unit test suite
+pytest -v tests/
 
-# 2. Train Academic DualStreamLCNN
-python scripts/train_la_system.py
+# 2. Regenerate all empirical result CSVs and publication figures
+python WildSpoof_Project\scripts\generate_results.py
 
-# 3. Evaluate Unseen Attacks (A07-A19)
-python scripts/evaluate_la_attacks.py
+# 3. Controlled acoustic stress-testing
+python WildSpoof_Project\scripts\evaluate_la_robustness.py
 
-# 4. Stress-Test Acoustic Robustness
-python scripts/evaluate_la_robustness.py
-
-# 5. Evaluate Cross-Dataset Generalization
-python scripts/cross_dataset_evaluation.py
+# 4. Granular unseen attack evaluation (A07-A19)
+python WildSpoof_Project\scripts\evaluate_la_attacks.py
 ```

@@ -1,18 +1,22 @@
-# Datasets, manifests and large data files
+# Datasets and raw audio files
 LA/
 for-2seconds/
-data/
-**/data/
 *.flac
 *.wav
 *.mp3
+
+# Manifest and cache data (keep instructions/README)
+data/*
+!data/README.md
+**/data/*
+!**/data/README.md
 
 # Reports, PPT Images, and Build Scripts (not part of core code & results)
 reports/
 REPORT_AND_PPT_IMAGES/
 build_scripts/
 
-# Python Virtual Environments & Packages
+# Python Virtual Environments, caches & packages
 venv/
 env/
 .venv/
@@ -23,6 +27,15 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+.pytest_cache/
+**/.pytest_cache/
+
+# Environment, secrets & logs
+.env
+*.env
+*.env.*
+*.log
+**/*.log
 
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints/
@@ -45,7 +58,7 @@ desktop.ini
 *.docx
 *.pptx
 
-# LaTeX auxiliary files (keep .tex and .bib)
+# LaTeX auxiliary files
 reports/*.aux
 reports/*.log
 reports/*.out

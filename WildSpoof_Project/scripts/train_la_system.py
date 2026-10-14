@@ -29,7 +29,11 @@ def compute_val_metrics(model, val_loader, device):
                 feats = feats.to(device)
                 logits = model(feats)
 
-            scores = torch.sigmoid(logits).cpu().numpy()
+            if logits.dim() > 1 and logits.shape[1] == 2:
+                scores = torch.softmax(logits, dim=1)[:, 1].cpu().numpy()
+            else:
+                scores = torch.sigmoid(logits.squeeze(-1)).cpu().numpy()
+
             all_scores.extend(scores)
             all_labels.extend(labels.numpy())
 
@@ -38,17 +42,15 @@ def compute_val_metrics(model, val_loader, device):
 
     preds = (all_scores >= 0.5).astype(int)
     acc = (preds == all_labels).mean()
-    try:
-        eer, eer_thresh = compute_eer(all_labels, all_scores)
-    except Exception:
-        eer, eer_thresh = 0.5, 0.5
+    eer, eer_thresh = compute_eer(all_labels, all_scores)
     return acc, eer, eer_thresh
 
-def train_model(train_df, dev_df, model_type="baseline", epochs=4, batch_size=64, lr=1e-3):
+def train_model(train_df, dev_df, model_type="baseline", epochs=4, batch_size=32, lr=config.LEARNING_RATE, embedding_dim=config.EMBEDDING_DIM, num_classes=config.NUM_CLASSES):
     utils.set_seed(config.RANDOM_SEED)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"\n=======================================================")
     print(f"Training Academic LA Model: {model_type.upper()} | Feature: DUAL (LFCC+Mel) | Device: {device}")
+    print(f"Embedding Dim per Branch: {embedding_dim} (Fused: {embedding_dim * 2}) | Classes: {num_classes}")
     print(f"=======================================================")
 
     is_augmented = (model_type == "augmented")
@@ -58,15 +60,24 @@ def train_model(train_df, dev_df, model_type="baseline", epochs=4, batch_size=64
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=0)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=0)
 
-    model = DualStreamLCNN().to(device)
+    model = DualStreamLCNN(embedding_dim=embedding_dim, num_classes=num_classes, dropout=config.DROPOUT).to(device)
 
     # Class weighting for balanced loss
     num_pos = np.sum(train_df["label"] == 1)
     num_neg = np.sum(train_df["label"] == 0)
-    pos_weight = torch.tensor([num_neg / max(num_pos, 1)], device=device)
+    total_samples = num_pos + num_neg
 
-    criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
-    optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-4)
+    if num_classes == 2:
+        class_weights = torch.tensor([
+            total_samples / (2.0 * max(num_neg, 1)),
+            total_samples / (2.0 * max(num_pos, 1))
+        ], dtype=torch.float32, device=device)
+        criterion = nn.CrossEntropyLoss(weight=class_weights)
+    else:
+        pos_weight = torch.tensor([num_neg / max(num_pos, 1)], dtype=torch.float32, device=device)
+        criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
+
+    optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=config.WEIGHT_DECAY)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs, eta_min=1e-5)
 
     best_val_eer = float('inf')
@@ -84,16 +95,20 @@ def train_model(train_df, dev_df, model_type="baseline", epochs=4, batch_size=64
         for feats, labels, _, _ in pbar:
             if isinstance(feats, (tuple, list)):
                 lfcc, mel = feats[0].to(device), feats[1].to(device)
-                labels = labels.to(device)
                 optimizer.zero_grad()
                 logits = model(lfcc, mel)
             else:
-                feats, labels = feats.to(device), labels.to(device)
+                feats = feats.to(device)
                 optimizer.zero_grad()
                 logits = model(feats)
 
-            loss = criterion(logits, labels)
+            if num_classes == 2:
+                loss = criterion(logits, labels.to(device))
+            else:
+                loss = criterion(logits.squeeze(-1), labels.float().to(device))
+
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=config.GRAD_CLIP)
             optimizer.step()
 
             running_loss += loss.item() * len(labels)
